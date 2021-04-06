@@ -13,7 +13,6 @@ RUN apt-get update
 RUN apt-get -y install filebeat
 COPY filebeat.yml /etc/filebeat/filebeat.yml
 RUN filebeat modules enable apache
-ADD testwebserver.tar /var/www/html/
 RUN apt-get -y install metricbeat
 COPY metricbeat.yml /etc/metricbeat/metricbeat.yml
 RUN metricbeat modules enable apache
@@ -21,7 +20,6 @@ COPY apache.yml /etc/metricbeat/modules.d/apache.yml
 #ENTRYPOINT sudo service apache2 restart && bash
 #RUN service filebeat start
 #RUN service metricbeat start
-FROM ansiblesimage AS stage1
 RUN mkdir /home/normaluser
 RUN useradd normaluser
 RUN echo 'normaluser:normaluser123' | chpasswd
