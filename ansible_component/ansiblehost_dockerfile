@@ -1,0 +1,18 @@
+FROM ubuntu
+ENV DEBBIAN_FRONTEND=noninteractive
+RUN apt-get update
+RUN apt-get upgrade -y
+RUN apt-get install vim openssh-server net-tools sudo -y
+RUN apt-get install ansible -y
+ADD hosts /etc/ansible/hosts
+RUN echo 'root:password' | chpasswd
+RUN mkdir /home/normaluser
+RUN useradd normaluser
+RUN echo 'normaluser:normaluser123' | chpasswd
+RUN chown normaluser:normaluser /home/normaluser
+RUN echo "normaluser    ALL=(ALL:ALL) NOPASSWD:ALL" >> /etc/sudoers
+USER normaluser
+WORKDIR /home/normaluser
+RUN ssh-keygen -q -t rsa -N '' -f /home/normaluser/.ssh/id_rsa
+EXPOSE 22
+ENTRYPOINT sudo service ssh restart && bash

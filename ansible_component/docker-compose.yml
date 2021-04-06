@@ -1,0 +1,53 @@
+version: "3.7"
+
+services:
+  ansibleserver:
+    build:
+      context: .
+      dockerfile: ansiblehost_dockerfile
+    image: ansibleserverimage
+    container_name: ansibleserver
+    restart: unless-stopped
+    #ports:
+    #  - "22"
+    tty: true
+    networks:
+      - ansible_network
+
+  ubuntuhost:
+    build:
+      context: .
+      dockerfile: ubuntuhost_dockerfile
+    image: ubuntuhostimage
+    container_name: ubuntuhost
+    restart: unless-stopped
+    #ports:
+    #  - "22"
+    tty: true
+    networks:
+      - ansible_network
+    depends_on:
+      - ansibleserver
+
+
+  amazonlinuxhost:
+    build:
+      context: .
+      dockerfile: amazonlinuxhost_dockerfile
+    image: amazonlinuxhostimage
+    container_name: amazonlinuxhost
+    restart: unless-stopped
+    #ports:
+    #  - "22"
+    tty: true
+    networks:
+      - ansible_network
+    depends_on:
+      - ansibleserver
+
+
+
+networks:
+  ansible_network:
+    driver: bridge
+

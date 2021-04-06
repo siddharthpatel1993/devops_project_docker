@@ -1,0 +1,22 @@
+FROM ubuntu
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update
+RUN apt-get upgrade -y
+RUN apt-get -y install gnupg
+RUN apt-get -y install apache2 curl tcpdump telnet iputils-ping sudo wget vim net-tools
+RUN wget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | sudo apt-key add -
+RUN apt-get -y install apt-transport-https
+RUN echo "deb https://artifacts.elastic.co/packages/oss-7.x/apt stable main" | sudo tee  /etc/apt/sources.list.d/elastic-7.x.list
+RUN apt-get update
+RUN apt-get -y install filebeat
+COPY filebeat.yml /etc/filebeat/filebeat.yml
+RUN filebeat modules enable apache
+ADD testwebserver.tar /var/www/html/
+RUN apt-get -y install metricbeat
+COPY metricbeat.yml /etc/metricbeat/metricbeat.yml
+RUN metricbeat modules enable apache
+COPY apache.yml /etc/metricbeat/modules.d/apache.yml
+ENTRYPOINT sudo service apache2 restart && bash
+#RUN service filebeat start
+#RUN service metricbeat start
+ 

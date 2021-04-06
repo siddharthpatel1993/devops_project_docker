@@ -1,0 +1,20 @@
+FROM ubuntu
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update
+RUN apt-get upgrade -y
+RUN apt-get -y install gnupg
+RUN apt-get -y install wget sudo curl tcpdump net-tools vim iputils-ping
+#Install_JAVA
+RUN apt-get install default-jdk -y
+RUN apt-get install openjdk-8-jre -y
+RUN apt-get update
+RUN wget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | sudo apt-key add -
+RUN apt-get -y install apt-transport-https
+RUN echo "deb https://artifacts.elastic.co/packages/oss-7.x/apt stable main" | sudo tee  /etc/apt/sources.list.d/elastic-7.x.list
+RUN apt-get update
+RUN dpkg --configure -a
+RUN apt-get install logstash -y
+COPY 02-beats-input.conf /etc/logstash/conf.d/02-beats-input.conf
+COPY 10-syslog-filter.conf /etc/logstash/conf.d/10-syslog-filter.conf
+COPY 30-elasticsearch-output.conf /etc/logstash/conf.d/30-elasticsearch-output.conf
+ENTRYPOINT sudo service logstash restart && bash

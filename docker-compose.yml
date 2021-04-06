@@ -1,0 +1,82 @@
+version: "3.7"
+
+services:
+  devbox:
+    build:
+      context: devbox/
+      dockerfile: devbox_dockerfile
+    image: devboximage
+    container_name: devbox
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    tty: true
+    networks:
+      - devops_project
+
+  jenkins:
+    build:
+      context: jenkins_component/
+      dockerfile: jenkins_dockerfile_ubuntuhost 
+    image: jenkinsimage
+    container_name: jenkins
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    tty: true
+    networks:
+      - devops_project
+    depends_on:
+      - devbox
+
+  ansible:
+    build:
+      context: .
+      dockerfile: ansible_component/ansiblehost_dockerfile
+    image: ansiblesimage
+    container_name: ansible
+    restart: unless-stopped
+    #ports:
+    #  - "22"
+    tty: true
+    networks:
+      - devops_project
+    depends_on:
+      - jenkins
+
+  ubuntuhost:
+    build:
+      context: .
+      dockerfile: ansible_component/ubuntuhost_dockerfile
+    image: ubuntuhostimage
+    container_name: ubuntuhostwebserver
+    restart: unless-stopped
+    #ports:
+    #  - "22"
+    tty: true
+    networks:
+      - devops_project
+    depends_on:
+      - ansible
+
+
+  amazonlinuxhost:
+    build:
+      context: .
+      dockerfile: ansible_component/amazonlinuxhost_dockerfile
+    image: amazonlinuxhostimage
+    container_name: amazonlinuxhost
+    restart: unless-stopped
+    #ports:
+    #  - "22"
+    tty: true
+    networks:
+      - devops_project
+    depends_on:
+      - ubuntuhost
+
+
+networks:
+  devops_project:
+    driver: bridge
+

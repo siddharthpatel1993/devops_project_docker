@@ -1,0 +1,24 @@
+FROM ansiblesimage AS stage1
+
+FROM amazonlinux
+ENV DEBBIAN_FRONTEND=noninteractive
+RUN yum update -y
+RUN yum upgrade -y
+RUN yum install vim openssh* net-tools sudo -y
+RUN useradd normaluser
+RUN echo 'normaluser:normaluser123' | chpasswd
+RUN sed -i 's/#PubkeyAuthentication yes/PubkeyAuthentication yes/' /etc/ssh/sshd_config
+RUN echo 'root:password' | chpasswd
+RUN echo "normaluser    ALL=(ALL:ALL) NOPASSWD:ALL" >> /etc/sudoers
+COPY --from=stage1  /home/normaluser/.ssh/id_rsa.pub /home/normaluser/.ssh/authorized_keys
+RUN chmod 600 /home/normaluser/.ssh/authorized_keys
+RUN chmod 700 /home/normaluser/.ssh/
+RUN chown -R normaluser:normaluser /home/normaluser/.ssh/
+COPY systemctl.py /usr/bin/systemctl
+RUN chmod a+x /usr/bin/systemctl
+WORKDIR /etc/ssh/
+RUN ssh-keygen -A
+USER normaluser
+WORKDIR /home/normaluser
+EXPOSE 22
+ENTRYPOINT sudo systemctl restart sshd && bash
