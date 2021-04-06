@@ -31,9 +31,9 @@ services:
 
   ansible:
     build:
-      context: .
-      dockerfile: ansible_component/ansiblehost_dockerfile
-    image: ansiblesimage
+      context: ansible_component/
+      dockerfile: ansiblehost_dockerfile
+    image: ansibleimage
     container_name: ansible
     restart: unless-stopped
     #ports:
@@ -44,15 +44,15 @@ services:
     depends_on:
       - jenkins
 
-  ubuntuhost:
+  webserver:
     build:
-      context: .
-      dockerfile: ansible_component/ubuntuhost_dockerfile
-    image: ubuntuhostimage
-    container_name: ubuntuhostwebserver
+      context: webserver/ 
+      dockerfile: webserver_dockerfile
+    image: webserverimage
+    container_name: webserver
     restart: unless-stopped
-    #ports:
-    #  - "22"
+    ports:
+      - "8081:80"
     tty: true
     networks:
       - devops_project
@@ -60,21 +60,50 @@ services:
       - ansible
 
 
-  amazonlinuxhost:
+  elasticsearch:
     build:
-      context: .
-      dockerfile: ansible_component/amazonlinuxhost_dockerfile
-    image: amazonlinuxhostimage
-    container_name: amazonlinuxhost
+      context: elk_component/elasticsearch/
+      dockerfile: elasticsearch_dockerfile
+    image: elasticserachimage
+    container_name: elasticsearch
     restart: unless-stopped
-    #ports:
-    #  - "22"
+    ports:
+      - "9200:9200"
     tty: true
     networks:
       - devops_project
     depends_on:
-      - ubuntuhost
+      - webserver
 
+  kibana:
+    build:
+      context: elk_component/kibana/
+      dockerfile: kibana_dockerfile
+    image: kibanaimage
+    container_name: kibana
+    restart: unless-stopped
+    ports:
+      - "5601:5601"
+    tty: true
+    networks:
+      - devops_project
+    depends_on:
+      - elasticsearch
+
+  logstash:
+    build:
+      context: elk_component/logstash/
+      dockerfile: logstash_dockerfile
+    image: logstashimage
+    container_name: logstash
+    restart: unless-stopped
+    ports:
+      - "5400:5400"
+    tty: true
+    networks:
+      - devops_project
+    depends_on:
+      - webserver
 
 networks:
   devops_project:
